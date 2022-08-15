@@ -13,6 +13,7 @@ import org.gradle.util.GradleVersion
 import java.io.File
 import java.net.URL
 import kotlin.io.path.Path
+import kotlin.io.path.exists
 
 /**
  * Load config file of version catalog from remote server.
@@ -36,6 +37,13 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
          * eg: common
          */
         const val PROP_REMOTE_CATALOG_NAME = "remote.version.catalog.name"
+
+        /**
+         * Local storage path for VersionCatalog toml file
+         *
+         * default value: .gradle/
+         */
+        const val PROP_REMOTE_CATALOG_PATH = "remote.version.catalog.path"
 
         /**
          * Expire time of local toml file cache.
@@ -72,10 +80,20 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
         val name = properties[PROP_REMOTE_CATALOG_NAME]?.toString()
         val expireMillis = properties.opt(PROP_EXPIRE_MILLIS)?.toString()?.toLong() ?: DEFAULT_CACHE_EXPIRE_MILLIS
 
-        val storageDir = Path("${settings.rootDir}/.gradle").toFile()
+        val dotGradleDir = Path("${settings.rootDir}/.gradle").toFile()
         val fileName = "${name}${FILE_NAME_SUFFIX}"
-        val remoteFile = File(storageDir, "${name}${FILE_NAME_SUFFIX}")
-        val lastUpdateAtFile = File(storageDir, "$fileName$LAST_UPDATE_AT_SUFFIX")
+        val storagePath = properties.opt(PROP_REMOTE_CATALOG_PATH)?.toString()
+        val storagePathFile = storagePath?.let { Path("${settings.rootDir}/$it").toFile() }
+        val remoteFile = if (storagePathFile != null) {
+            if (storagePathFile.isDirectory) {
+                File(storagePathFile, "${name}${FILE_NAME_SUFFIX}")
+            } else {
+                errorOccur("Path is not exist, please check property: $PROP_REMOTE_CATALOG_PATH=${storagePathFile.path}")
+            }
+        } else {
+            File(dotGradleDir, "${name}${FILE_NAME_SUFFIX}")
+        }
+        val lastUpdateAtFile = File(dotGradleDir, "$fileName$LAST_UPDATE_AT_SUFFIX")
 
         if (url.isNullOrBlank()) {
             errorOccur("Please define the property (${PROP_REMOTE_URL})")
@@ -89,7 +107,7 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
         val isExpired = System.currentTimeMillis() - getLastUpdateAt(lastUpdateAtFile) > expireMillis
         val isFileExist = remoteFile.exists() && remoteFile.length() > 0
         if (isExpired || isFileExist.not()) {
-            logger.info("Download version catalog file... $url")
+            logger.info("Download VersionCatalog file... $url")
             downloadRemoteVersionCatalogFile(url, remoteFile)
             writeLastUpdateAt(lastUpdateAtFile, System.currentTimeMillis())
             logger.info("Download successfully.")
@@ -122,7 +140,7 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
                 task.doLast {
                     remoteFile.delete()
                     lastUpdateAtFile.delete()
-                    logger.info("Local version catalog cache is deleted. (${remoteFile.path})")
+                    logger.info("The local VersionCatalog cache deleted. (${remoteFile.path})")
                 }
             }
         }
@@ -166,7 +184,7 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
 
     private fun checkGradleVersion() {
         if (GradleVersion.current() < GradleVersion.version("7.2")) {
-            errorOccur("Gradle version must be more than 7.2, otherwise the VersionCatalog is not supported")
+            errorOccur("Gradle version must be greater than 7.2, otherwise VersionCatalog feature cannot be used.")
         }
     }
 

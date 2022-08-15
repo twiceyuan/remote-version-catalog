@@ -11,6 +11,7 @@
 | remote.version.catalog.url    | 必选  | toml 文件的下载地址                 |
 | remote.version.catalog.name   | 必选  | 配置名称，会根据该配置创建 VersionCatalog |
 | remote.version.catalog.expire | 可选  | 缓存过期时间，单位毫秒，默认值为一天（86400000） |
+| remote.version.catalog.path   | 可选  | toml 文件存储路径，默认存储 .gradle 路径下 |
 
 例如：
 
