@@ -16,8 +16,12 @@
 例如：
 
 ```
+# Remote Config 配置文件地址，可以自己写个存在 Gist 上，并使用文末的链接2 获取固定链接
 remote.version.catalog.url=https://gist.githubusercontent.com/twiceyuan/941c695ba0297c56878bc8ca2806b931/raw
+# VersionCatalog 的引用名称
 remote.version.catalog.name=common
+# VersionCatalog 文件的存储路径。默认在 .gradle 一般不会跟随 VCS，设置 . 为项目根目录
+remote.version.catalog.path=.
 ```
 
 添加插件引用 `settings.gradle`：
@@ -33,7 +37,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'io.github.twiceyuan:remote-version-catalog:1.0'
+        classpath 'io.github.twiceyuan:remote-version-catalog:1.1'
     }
 }
 
