@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.twiceyuan"
-version = "1.1"
+version = "1.2"
 
 repositories {
     mavenCentral()
@@ -21,7 +21,7 @@ dependencies {
 gradlePlugin {
     plugins {
         create("RemoteVersionCatalog") {
-            id = "remote-version-catalog"
+            id = "io.github.twiceyuan.version.catalog"
             implementationClass = "io.github.twiceyuan.rvc.RemoteVersionCatalogPlugin"
         }
     }
