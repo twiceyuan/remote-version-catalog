@@ -26,6 +26,7 @@ remote.version.catalog.path=.
 
 添加插件引用 `settings.gradle`：
 
+Old Style:
 ```
 rootProject.name = "remote-version-catalog-demo"
 include ':app'
@@ -42,6 +43,32 @@ buildscript {
 }
 
 apply plugin: 'remote-version-catalog'
+```
+
+New Style(settings.gradle.kts)
+```
+pluginManagement {
+    repositories {
+        maven { setUrl("https://jitpack.io") } // Add this line
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    // Jitpack 上传的插件需要指定 gav
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.toString() == "io.github.twiceyuan.version.catalog") {
+                useModule("io.github.twiceyuan:remote-version-catalog:1.3")
+            }
+        }
+    }
+}
+
+// 应用插件
+plugins {
+    id("io.github.twiceyuan.version.catalog")
+}
 ```
 
 在依赖中引用：
