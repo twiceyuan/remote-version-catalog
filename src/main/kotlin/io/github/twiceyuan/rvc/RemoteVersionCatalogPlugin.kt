@@ -115,7 +115,6 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
             logger.info("Version catalog file cache is valid, skip download (url: $url)")
         }
 
-        settings.enableFeaturePreview("VERSION_CATALOGS")
         settings.gradle.settingsEvaluated {
             @Suppress("UnstableApiUsage")
             settings.dependencyResolutionManagement.versionCatalogs.apply {
