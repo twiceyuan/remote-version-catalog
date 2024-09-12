@@ -1,25 +1,23 @@
 package io.github.twiceyuan.rvc
 
 import org.gradle.api.Plugin
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.logging.Logging
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.util.GradleVersion
 import java.io.File
 import java.net.URL
+import javax.inject.Inject
 import kotlin.io.path.Path
-import kotlin.io.path.exists
 
 /**
  * Load config file of version catalog from remote server.
  */
 @Suppress("unused")
-class RemoteVersionCatalogPlugin : Plugin<Settings> {
+class RemoteVersionCatalogPlugin @Inject constructor(
+    private val objects: ObjectFactory
+) : Plugin<Settings> {
 
     private val logger = Logging.getLogger("remote-version-catalog")
 
@@ -78,7 +76,8 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
         val properties = settings.extensions.extraProperties
         val url = properties[PROP_REMOTE_URL]?.toString()
         val name = properties[PROP_REMOTE_CATALOG_NAME]?.toString()
-        val expireMillis = properties.opt(PROP_EXPIRE_MILLIS)?.toString()?.toLong() ?: DEFAULT_CACHE_EXPIRE_MILLIS
+        val expireMillis =
+            properties.opt(PROP_EXPIRE_MILLIS)?.toString()?.toLong() ?: DEFAULT_CACHE_EXPIRE_MILLIS
 
         val dotGradleDir = Path("${settings.rootDir}/.gradle").toFile()
         val fileName = "${name}${FILE_NAME_SUFFIX}"
@@ -104,7 +103,8 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
         }
 
         // If cache file is expired or not exist, download the file.
-        val isExpired = System.currentTimeMillis() - getLastUpdateAt(lastUpdateAtFile) > expireMillis
+        val isExpired =
+            System.currentTimeMillis() - getLastUpdateAt(lastUpdateAtFile) > expireMillis
         val isFileExist = remoteFile.exists() && remoteFile.length() > 0
         if (isExpired || isFileExist.not()) {
             logger.info("Download VersionCatalog file... $url")
@@ -118,8 +118,8 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
         settings.gradle.settingsEvaluated {
             @Suppress("UnstableApiUsage")
             settings.dependencyResolutionManagement.versionCatalogs.apply {
-                create(name) {
-                    it.from(getConfigurableFile(settings, remoteFile.path))
+                register(name) {
+                    it.from(objects.fileCollection().from(remoteFile))
                 }
             }
         }
@@ -171,14 +171,6 @@ class RemoteVersionCatalogPlugin : Plugin<Settings> {
                 errorOccur("Content is empty: $url")
             }
         }
-    }
-
-    private fun getConfigurableFile(settings: Settings, path: String): ConfigurableFileCollection {
-        val services = (settings.gradle as GradleInternal).services
-        val fileResolver = services.get(FileLookup::class.java).getFileResolver(settings.rootDir)
-        val fileCollectionFactory = services.get(FileCollectionFactory::class.java).withResolver(fileResolver)
-        val fileOperations = DefaultFileOperations.createSimple(fileResolver, fileCollectionFactory, services)
-        return fileOperations.configurableFiles(path)
     }
 
     private fun checkGradleVersion() {
