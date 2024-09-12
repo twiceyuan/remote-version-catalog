@@ -6,16 +6,16 @@
 
 在 `gradle.properties` 文件添加以下属性：
 
-| 字段名                           | 约束  | 含义                           |
-|-------------------------------|-----|------------------------------|
-| remote.version.catalog.url    | 必选  | toml 文件的下载地址                 |
-| remote.version.catalog.name   | 必选  | 配置名称，会根据该配置创建 VersionCatalog |
-| remote.version.catalog.expire | 可选  | 缓存过期时间，单位毫秒，默认值为一天（86400000） |
-| remote.version.catalog.path   | 可选  | toml 文件存储路径，默认存储 .gradle 路径下 |
+| 字段名                           | 约束  | 含义                                      |
+|---------------------------------|------|-------------------------------------------|
+| remote.version.catalog.url      | 必选  | toml 文件的下载地址                         |
+| remote.version.catalog.name     | 必选  | 配置名称，会根据该配置创建 VersionCatalog     |
+| remote.version.catalog.expire   | 可选  | 缓存过期时间，单位毫秒，默认值为一天（86400000）|
+| remote.version.catalog.path     | 可选  | toml 文件存储路径，默认存储 .gradle 路径下    |
 
 例如：
 
-```
+```properties
 # Remote Config 配置文件地址，可以自己写个存在 Gist 上，并使用文末的链接2 获取固定链接
 remote.version.catalog.url=https://gist.githubusercontent.com/twiceyuan/941c695ba0297c56878bc8ca2806b931/raw
 # VersionCatalog 的引用名称
@@ -24,29 +24,9 @@ remote.version.catalog.name=common
 remote.version.catalog.path=.
 ```
 
-添加插件引用 `settings.gradle`：
 
-Old Style:
-```
-rootProject.name = "remote-version-catalog-demo"
-include ':app'
-
-buildscript {
-    repositories {
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-
-    dependencies {
-        classpath 'io.github.twiceyuan:remote-version-catalog:1.1'
-    }
-}
-
-apply plugin: 'remote-version-catalog'
-```
-
-New Style(settings.gradle.kts)
-```
+`settings.gradle.kts`
+```groovy
 pluginManagement {
     repositories {
         maven { setUrl("https://jitpack.io") } // Add this line
@@ -69,6 +49,25 @@ pluginManagement {
 plugins {
     id("io.github.twiceyuan.version.catalog")
 }
+```
+
+Old Style:
+```groovy
+rootProject.name = "remote-version-catalog-demo"
+include ':app'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+
+    dependencies {
+        classpath 'io.github.twiceyuan:remote-version-catalog:1.1'
+    }
+}
+
+apply plugin: 'remote-version-catalog'
 ```
 
 在依赖中引用：
