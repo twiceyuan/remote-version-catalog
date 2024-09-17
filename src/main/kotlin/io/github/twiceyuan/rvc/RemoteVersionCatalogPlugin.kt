@@ -115,19 +115,21 @@ class RemoteVersionCatalogPlugin @Inject constructor(
             logger.info("Version catalog file cache is valid, skip download (url: $url)")
         }
 
-        settings.gradle.settingsEvaluated {
-            @Suppress("UnstableApiUsage")
-            settings.dependencyResolutionManagement.versionCatalogs.apply {
-                register(name) {
-                    it.from(objects.fileCollection().from(remoteFile))
+        if (name != "libs") {
+            settings.gradle.settingsEvaluated {
+                @Suppress("UnstableApiUsage")
+                settings.dependencyResolutionManagement.versionCatalogs.apply {
+                    register(name) {
+                        it.from(objects.fileCollection().from(remoteFile))
+                    }
                 }
             }
         }
 
         settings.gradle.afterProject { project ->
             // Register the task for force download configuration file. (Skip the expiry time config)
-            project.tasks.register("refreshRemoteVersionCatalog") { task ->
-                task.group = "version-catalog"
+            project.tasks.register("downloadRemoteVersionCatalog") { task ->
+                task.group = "remote-version-catalog"
                 task.doLast {
                     downloadRemoteVersionCatalogFile(url, remoteFile)
                     writeLastUpdateAt(lastUpdateAtFile, System.currentTimeMillis())
@@ -135,7 +137,7 @@ class RemoteVersionCatalogPlugin @Inject constructor(
             }
 
             project.tasks.register("cleanRemoteVersionCatalog") { task ->
-                task.group = "version-catalog"
+                task.group = "remote-version-catalog"
                 task.doLast {
                     remoteFile.delete()
                     lastUpdateAtFile.delete()
@@ -186,4 +188,3 @@ class RemoteVersionCatalogPlugin @Inject constructor(
 
     private fun ExtraPropertiesExtension.opt(name: String) = if (has(name)) get(name) else null
 }
-
