@@ -78,6 +78,14 @@ implementation common.kotlin.stdlib
 
 toml 配置文件可以使用 Gist 服务，参考文末链接。
 
+## Tasks
+
+配置插件后项目级别 Tasks 下会有个 remote-version-catalog 的 group，目前有两个 task：
+
+- `cleanRemoteVersionCatalog`：清除本地的 version catalog 文件，和直接删除一样；
+- `downloadRemoteVersionCatalog`：手动下载配置的 version catalog 文件
+
+
 ## Thanks
 
 1. 相关 API 使用参考了团队大佬 [@5peak2me](https://github.com/5peak2me) 的插件实现
